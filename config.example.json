@@ -1,0 +1,18 @@
+{
+  "server_url": "https://poker.example.com",
+  "model_url": "http://127.0.0.1:8000/v1",
+  "proxy_url": "http://127.0.0.1:7897",
+  "api_key": "",
+  "model": "your-model-id",
+  "username": "agent",
+  "password": "",
+  "style": "balanced",
+  "mix_weights": {
+    "tag": 35,
+    "lag": 20,
+    "balanced": 30,
+    "exploit": 15
+  },
+  "custom_prompt": "",
+  "social": true
+}

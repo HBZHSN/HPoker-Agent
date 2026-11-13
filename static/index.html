@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HPoker-Agent · 德州 AI 控制台</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="brand-icon">♠</span><span>HPoker<b>-Agent</b><small>德州 AI 控制台</small></span></a>
+    <div class="top-actions"><span class="badge" id="connection">连接控制台…</span><a id="hpoker-link" target="_blank" rel="noopener noreferrer" hidden>打开 HPoker ↗</a></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="section-heading"><span class="eyebrow">PLAYER PROFILE</span><span class="subtle">01</span></div>
+      <h1>给 AI 一种打法</h1><p class="muted">由模型读牌、读人，决定每一步。</p>
+      <form id="settings-form">
+        <div id="styles" class="style-grid"></div>
+        <div id="mix-panel" class="mix-panel" hidden><p class="muted">每手按权重选择风格，整手保持一致。</p><div id="mix-weights"></div></div>
+        <label class="field">额外偏好<textarea id="custom-prompt" rows="3" maxlength="1200" placeholder="例如：前几手稳一点，观察对手再调整。"></textarea></label>
+        <label class="toggle"><input type="checkbox" id="social" checked><span>开局点评与聊天回应</span></label>
+        <details class="settings-details" id="connection-settings">
+          <summary>账号与模型设置 <span>⌄</span></summary>
+          <label class="field">HPoker 地址<input id="server-url" type="url" required></label>
+          <label class="field">HPoker 网络代理<input id="proxy-url" type="url" required></label>
+          <div class="two-fields"><label class="field">账号<input id="username" autocomplete="username" required></label><label class="field">密码<input id="password" type="password" autocomplete="current-password" placeholder="已保存，留空保留"></label></div>
+          <label class="field">模型 API 地址<input id="model-url" type="url" required></label>
+          <label class="field">API Key<input id="api-key" type="password" autocomplete="off" placeholder="已保存，留空保留"></label>
+          <label class="field">模型<div class="input-action"><input id="model" list="model-list" required><button id="load-models" type="button" title="查询可用模型">↻</button></div><datalist id="model-list"></datalist></label>
+        </details>
+        <div class="two-buttons"><button type="submit" class="secondary">保存设置</button><button type="button" id="login" class="secondary">登录账号</button></div>
+      </form>
+      <div class="sidebar-footer"><span class="tiny-dot"></span><span id="account-label">账号未登录</span><small>凭据仅保存在本机，模型不会收到密码。</small></div>
+    </aside>
+    <main>
+      <div class="main-heading"><div><span class="eyebrow">LIVE SESSION</span><h2>牌桌观察室</h2></div><div class="tabs" role="tablist" aria-label="内容视图"><button id="live-tab" class="active" role="tab" aria-selected="true">实时对局</button><button id="history-tab" role="tab" aria-selected="false">牌局记录</button></div></div>
+      <section class="metrics" aria-label="本次会话统计">
+        <div><span>已完成手数</span><strong id="metric-hands">0</strong></div><div><span>筹码净变化</span><strong id="metric-profit">0</strong></div><div><span>模型行动 / 保底</span><strong id="metric-actions">0 <small>/ 0</small></strong></div><div><span>本次牌局 Token</span><strong id="metric-session-tokens">0</strong><small class="token-sub" id="metric-session-sub">入 0 · 出 0</small></div><div><span>历史累计 Token</span><strong id="metric-total-tokens">0</strong><small class="token-sub" id="metric-total-sub">入 0 · 出 0</small></div><div><span>最近输入长度</span><strong id="metric-context">—</strong></div>
+      </section>
+      <div id="live-view">
+        <section class="room-control panel">
+          <div class="panel-heading"><div><span class="eyebrow">ROOM</span><h3>选择一个房间</h3></div><button id="refresh-rooms" class="text-button">刷新 ↻</button></div>
+          <div class="room-controls"><label class="sr-only" for="room-select">选择房间</label><select id="room-select"><option value="">正在获取房间…</option></select><button id="start" class="primary">▶ 开始对局</button><button id="stop" class="danger" disabled>■ 停止并退出</button></div>
+          <div class="room-footer"><span id="room-info" class="muted">选择房间后开始。</span><button id="create-test" class="text-button">＋ 创建 0 H 币测试房 · 3 个机器人</button></div>
+        </section>
+        <section class="table-panel" aria-label="当前牌桌">
+          <div class="table-top"><span id="table-title">等待入座</span><span id="table-stage" class="badge">NO SESSION</span></div>
+          <div class="seat-row" id="top-seats"></div>
+          <div class="felt-center"><span class="pot-label">TOTAL POT</span><strong id="pot">0</strong><div id="board" class="cards"></div><p id="table-message">选择房间，开始下一手。</p><div id="hero-cards" class="cards hero-cards"></div><span class="hero-label" id="hero-label">你的 AI 手牌</span></div>
+          <div class="seat-row" id="bottom-seats"></div>
+          <div class="table-bottom"><span><i class="status-light" id="status-light"></i><span id="agent-status">待命</span></span><span id="turn-clock">—</span></div>
+        </section>
+        <section class="decision-panel panel"><div class="decision-icon">✦</div><div><span class="eyebrow">LATEST DECISION</span><h3 id="decision-title">等待模型行动</h3><p id="decision-reason" class="muted">模型会在轮到自己时调用工具，并给出简短决策依据。</p></div><span class="badge" id="decision-time">—</span></section>
+        <div class="detail-grid">
+          <section class="panel analysis-panel"><div class="panel-heading"><div><span class="eyebrow">CALCULATIONS</span><h3>牌面与赔率</h3></div><button class="text-button" id="calculate">计算 ↗</button></div><div id="analysis"><p class="empty-note">手动计算仅供你查看，结果不会提供给 AI。</p></div><p class="footnote">随机范围权益不等于对手全下范围下的胜率或 EV；赔率排除无法争夺的超额筹码。候选 outs 只代表牌型提升。</p></section>
+          <section class="panel memory-panel"><div class="panel-heading"><div><span class="eyebrow">AGENT MEMORY</span><h3>AI 的桌上记忆</h3></div><span class="badge" id="memory-count">0</span></div><p id="shared-plan" class="muted" hidden></p><div id="memories"><p class="empty-note">有依据的玩家观察和自身形象，会由 AI 保存下来。</p></div></section>
+        </div>
+        <section class="panel"><div class="panel-heading"><div><span class="eyebrow">PLAYER READS</span><h3>玩家画像</h3></div><span class="muted">跨次保留 · 小样本保持谨慎</span></div><div class="table-scroll"><table class="player-table"><thead><tr><th>玩家 / 位置</th><th>筹码</th><th>观察手数</th><th>VPIP</th><th>PFR</th><th>侵略系数</th><th>风格判断</th></tr></thead><tbody id="players"><tr><td colspan="7" class="empty-note">入座后显示当前玩家。</td></tr></tbody></table></div></section>
+        <section class="panel log-panel"><div class="panel-heading"><div><span class="eyebrow">TABLE JOURNAL</span><h3>牌桌动态</h3></div><span class="muted">行动、工具与连接状态均保存在本机</span></div><div id="logs" class="logs" aria-label="近期对局日志"></div></section>
+      </div>
+      <div id="history-view" hidden><section class="panel"><div class="panel-heading"><div><span class="eyebrow">HAND ARCHIVE</span><h3>最近 30 手完整记录</h3></div><button id="refresh-history" class="text-button">刷新 ↻</button></div><div id="history"></div></section></div>
+      <footer class="main-footer">HPoker-Agent <span>观察 · 判断 · 行动</span><span>数据保存在 data/agent.sqlite3</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
